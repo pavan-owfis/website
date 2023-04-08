@@ -1,5 +1,7 @@
 <template>
-  <div class="flex justify-center items-center h-screen bg-gray-100 gap-5">
+  <div
+    class="flex justify-center items-center h-screen bg-gray-100 gap-5 border border-gray-3600"
+  >
     <div>
       <div class="pb-3 w-[100%]">
         <!-- Adding template to the list -->
@@ -7,14 +9,16 @@
           class="bg-white hover:bg-gray-50 hover:text-gray-800 border focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2 font-semibold inline-flex items-center justify-center px-3 py-3 rounded-md shadow-sm text-gray-600 text-sm w-[100%]"
           @click="type = 'add'"
         >
-          <span>
-            <IconCSS name="material-symbols:add" class="mr-2" size="20" />
-          </span>
           Add New
         </button>
       </div>
       <CollectionAdd1 @addedData="addedData" v-if="type == 'add'" />
-      <collectionEdit1 v-else :listInput="listInput" @edited="editData" />
+      <collectionEdit1
+        v-else
+        :listInput="listInput"
+        @edited="editedData"
+        :key="render"
+      />
     </div>
     <div>
       <CollectionList1
@@ -22,29 +26,41 @@
         :inputData="inputData"
         @delete-card="deleteCard"
         @edit-card="editCard"
+        :key="renderList"
       />
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref } from "vue";
+
 const inputData = ref([]);
 const type = ref("add");
-const listInput = {
+const render = ref(0);
+const renderList = ref(0);
+const listInput = ref({
   name: "pavan",
   category: "engg",
-};
+});
+
+function editCard(data: object) {
+  console.log("datadata", data);
+  type.value = "edit";
+  listInput.value = data;
+  render.value++;
+}
 
 //get call
 const { data: items } = await useAuthLazyFetch(
   "https://v1-orm-lib.mars.hipso.cc/api/pages/?offset=0&limit=100&sort_column=id&sort_direction=desc",
   {}
 );
-inputData.value = items.value;
 //get call ends here
+inputData.value = items.value;
 
 //Post the data
-async function addedData(input) {
+async function addedData(input: object) {
   console.log("data", input);
   let body = {
     name: input.Name,
@@ -63,16 +79,19 @@ async function addedData(input) {
 }
 //post call ends here
 
-//Edit Call
-async function editData(edited) {
-  const { data: edit } = await useAuthLazyFetchPut(
-    `https://v1-orm-lib.mars.hipso.cc/api/pages/b97155e1-2513-4f04-926d-99ef65f7daa4/${data.uid}`,
+//PUT Call
+async function editedData(data) {
+  let body = data;
+  await useAuthLazyFetchPut(
+    `https://v1-orm-lib.mars.hipso.cc/api/pages/${data.uid}`,
     { body: JSON.stringify(body) }
   );
   const { data: response } = await useAuthLazyFetch(
     "https://v1-orm-lib.mars.hipso.cc/api/pages/?offset=0&limit=100&sort_column=id&sort_direction=desc",
     {}
   );
+  inputData.value = response.value;
+  renderList.value++;
 }
 
 //Delete Call
@@ -88,10 +107,4 @@ async function deleteCard(data) {
   inputData.value = response.value;
 }
 //Delete call ends here
-
-function editCard(data) {
-  type.value = "edit";
-  listInput.value = data.uid;
-  type.value = "edit";
-}
 </script>

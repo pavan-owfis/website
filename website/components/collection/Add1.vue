@@ -2,7 +2,7 @@
   <div>
     <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
       <h1 class="text-3xl font-semibold mb-6">Form</h1>
-      <form @submit.prevent="saveForm">
+      <form>
         <div class="mb-4">
           <label
             class="block text-gray-700 text-sm font-bold mb-2"
@@ -43,7 +43,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref } from "vue";
+
 const Name = ref("");
 const Category = ref("");
 
